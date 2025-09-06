@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Link Generator</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
+  authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
+  projectId: "ip-logger-hopefully-theone",
+  storageBucket: "ip-logger-hopefully-theone.firebasestorage.app",
+  messagingSenderId: "162611845621",
+  appId: "1:162611845621:web:7b2f3280c58fc2043e28bc",
+  measurementId: "G-VQX9171CF5"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+    function randomString(length) {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      return Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+    }
+
+    async function makeNew() {
+      const sessionId = randomString(8);
+      const code = randomString(6);
+
+      await setDoc(doc(db, "links", sessionId), { code: code });
+
+      const baitLink = window.location.origin + "/user.html?id=" + sessionId;
+      const adminLink = window.location.origin + "/admin.html?id=" + sessionId + "&code=" + code;
+
+      document.getElementById("bait").innerHTML = `<a href="${baitLink}" target="_blank">${baitLink}</a>`;
+      document.getElementById("admin").innerHTML = `<a href="${adminLink}" target="_blank">${adminLink}</a>`;
+    }
+
+    window.makeNew = makeNew;
+  </script>
+</head>
+<body>
+  <h1>Link Generator</h1>
+  <button onclick="makeNew()">Make New</button>
+  <h3>Bait Link:</h3>
+  <p id="bait"></p>
+  <h3>Admin Link:</h3>
+  <p id="admin"></p>
+</body>
+</html>
