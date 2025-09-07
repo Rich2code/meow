@@ -14,8 +14,8 @@
   <p id="admin"></p>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-database.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
+    import { getDatabase, ref, set } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
@@ -39,8 +39,8 @@
       const sessionId = randomString(8);
       const code = randomString(6);
 
-      // Save to Realtime Database
-      await set(ref(db, 'links/' + sessionId), { code: code });
+      // Save the session in Realtime Database
+      await set(ref(db, 'links/' + sessionId), { code });
 
       const baitLink = window.location.origin + "/user.html?id=" + sessionId;
       const adminLink = window.location.origin + "/admin.html?id=" + sessionId + "&code=" + code;
