@@ -5,46 +5,47 @@
 </head>
 <body>
   <h1>User Page</h1>
-  <p>This is the bait page. Visits are logged to Firebase.</p>
+  <p id="status">Loading session...</p>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-app.js";
+    import { getDatabase, ref, get, child, push } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
       authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
+      databaseURL: "https://ip-logger-hopefully-theone-default-rtdb.firebaseio.com",
       projectId: "ip-logger-hopefully-theone",
       storageBucket: "ip-logger-hopefully-theone.appspot.com",
       messagingSenderId: "162611845621",
-      appId: "1:162611845621:web:7b2f3280c58fc2043e28bc",
-      measurementId: "G-VQX9171CF5"
+      appId: "1:162611845621:web:7b2f3280c58fc2043e28bc"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db = getDatabase(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get("id");
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("id");
 
-    async function logVisit() {
-      if (!sessionId) return;
+    if (!sessionId) {
+      document.getElementById("status").innerText = "No session ID provided!";
+    } else {
+      const dbRef = ref(db);
+      get(child(dbRef, `links/${sessionId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          document.getElementById("status").innerText = "Session active! Logging visit...";
 
-      const info = {
-        timestamp: new Date().toISOString(),
-        userAgent: navigator.userAgent
-      };
+          // Log visitor
+          const visitsRef = ref(db, `links/${sessionId}/visits`);
+          push(visitsRef, { timestamp: Date.now() });
 
-      try {
-        await updateDoc(doc(db, "links", sessionId), {
-          visits: arrayUnion(info)
-        });
-      } catch (e) {
-        console.error("Failed to log visit:", e);
-      }
+        } else {
+          document.getElementById("status").innerText = "Invalid session!";
+        }
+      }).catch((error) => {
+        document.getElementById("status").innerText = "Error: " + error;
+      });
     }
-
-    logVisit();
   </script>
 </body>
 </html>
