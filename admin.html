@@ -5,11 +5,11 @@
 </head>
 <body>
   <h1>Admin Page</h1>
-  <div id="status"></div>
+  <div id="info"></div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
-    import { getDatabase, ref, get, child } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
@@ -25,25 +25,27 @@
     const db = getDatabase(app);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('id');
-    const code = urlParams.get('code');
+    const sessionId = urlParams.get("id");
+    const code = urlParams.get("code");
 
-    async function checkAdmin() {
-      const snapshot = await get(child(ref(db), 'links/' + sessionId));
-      if (!snapshot.exists()) {
-        document.getElementById('status').innerText = "Invalid session ID.";
-        return;
-      }
+    async function loadSession() {
+      const snapshot = await get(ref(db, "links/" + sessionId));
       const data = snapshot.val();
-      if (data.code !== code) {
-        document.getElementById('status').innerText = "Invalid code.";
+
+      if (!data) {
+        document.getElementById("info").innerText = "Session not found.";
         return;
       }
-      document.getElementById('status').innerText = "Admin access granted!";
-      // You can add visit logs or stats here
+
+      if (data.code !== code) {
+        document.getElementById("info").innerText = "Invalid code!";
+        return;
+      }
+
+      document.getElementById("info").innerHTML = `<p>Session ID: ${sessionId}</p><p>Code: ${code}</p>`;
     }
 
-    checkAdmin();
+    loadSession();
   </script>
 </body>
 </html>
