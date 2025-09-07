@@ -5,11 +5,11 @@
 </head>
 <body>
   <h1>User Page</h1>
-  <div id="status"></div>
+  <p id="message">Loading session...</p>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
-    import { getDatabase, ref, get, child, push, set } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-app.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
@@ -25,21 +25,24 @@
     const db = getDatabase(app);
 
     const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get('id');
+    const sessionId = urlParams.get("id");
 
     async function logVisit() {
-      const snapshot = await get(child(ref(db), 'links/' + sessionId));
-      if (!snapshot.exists()) {
-        document.getElementById('status').innerText = "Invalid session ID.";
+      const snapshot = await get(ref(db, "links/" + sessionId));
+      const data = snapshot.val();
+
+      if (!data) {
+        document.getElementById("message").innerText = "Session not found!";
         return;
       }
 
-      // Log the visit under this session
-      const visitsRef = ref(db, 'links/' + sessionId + '/visits');
-      const newVisitRef = push(visitsRef);
-      await set(newVisitRef, { timestamp: Date.now() });
+      // Log visit count
+      const visitRef = ref(db, "links/" + sessionId + "/visits");
+      const visitsSnapshot = await get(visitRef);
+      const visits = visitsSnapshot.val() || 0;
+      await set(visitRef, visits + 1);
 
-      document.getElementById('status').innerText = "Visit logged!";
+      document.getElementById("message").innerText = `Session loaded! Total visits: ${visits + 1}`;
     }
 
     logVisit();
