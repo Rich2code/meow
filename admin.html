@@ -5,11 +5,11 @@
 </head>
 <body>
   <h1>Admin Page</h1>
-  <p id="status"></p>
+  <div id="status"></div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-app.js";
-    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-database.js";
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
+    import { getDatabase, ref, get, child } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
@@ -24,24 +24,26 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get("id");
-    const code = params.get("code");
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get('id');
+    const code = urlParams.get('code');
 
-    if (!sessionId || !code) {
-      document.getElementById("status").innerText = "Invalid link!";
-    } else {
-      const dbRef = ref(db);
-      get(child(dbRef, `links/${sessionId}`)).then((snapshot) => {
-        if (snapshot.exists() && snapshot.val().code === code) {
-          document.getElementById("status").innerText = "Session valid! Code: " + code;
-        } else {
-          document.getElementById("status").innerText = "Invalid session or code!";
-        }
-      }).catch((error) => {
-        document.getElementById("status").innerText = "Error: " + error;
-      });
+    async function checkAdmin() {
+      const snapshot = await get(child(ref(db), 'links/' + sessionId));
+      if (!snapshot.exists()) {
+        document.getElementById('status').innerText = "Invalid session ID.";
+        return;
+      }
+      const data = snapshot.val();
+      if (data.code !== code) {
+        document.getElementById('status').innerText = "Invalid code.";
+        return;
+      }
+      document.getElementById('status').innerText = "Admin access granted!";
+      // You can add visit logs or stats here
     }
+
+    checkAdmin();
   </script>
 </body>
 </html>
