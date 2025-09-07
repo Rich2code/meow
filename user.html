@@ -30,14 +30,14 @@
     async function logVisit() {
       if (!sessionId) return;
 
-      const ipInfo = {
+      const info = {
         timestamp: new Date().toISOString(),
         userAgent: navigator.userAgent
       };
 
       try {
         await updateDoc(doc(db, "links", sessionId), {
-          visits: arrayUnion(ipInfo)
+          visits: arrayUnion(info)
         });
       } catch (e) {
         console.error("Failed to log visit:", e);
