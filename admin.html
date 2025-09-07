@@ -5,48 +5,43 @@
 </head>
 <body>
   <h1>Admin Page</h1>
-  <div id="log">Loading...</div>
+  <p id="status"></p>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
       authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
+      databaseURL: "https://ip-logger-hopefully-theone-default-rtdb.firebaseio.com",
       projectId: "ip-logger-hopefully-theone",
       storageBucket: "ip-logger-hopefully-theone.appspot.com",
       messagingSenderId: "162611845621",
-      appId: "1:162611845621:web:7b2f3280c58fc2043e28bc",
-      measurementId: "G-VQX9171CF5"
+      appId: "1:162611845621:web:7b2f3280c58fc2043e28bc"
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    const db = getDatabase(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get("id");
-    const code = urlParams.get("code");
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("id");
+    const code = params.get("code");
 
-    async function loadData() {
-      if (!sessionId || !code) {
-        document.getElementById("log").innerText = "Missing parameters.";
-        return;
-      }
-
-      const ref = doc(db, "links", sessionId);
-      const snap = await getDoc(ref);
-
-      if (snap.exists() && snap.data().code === code) {
-        const visits = snap.data().visits || [];
-        document.getElementById("log").innerHTML =
-          "<pre>" + JSON.stringify(visits, null, 2) + "</pre>";
-      } else {
-        document.getElementById("log").innerText = "❌ Invalid session or code";
-      }
+    if (!sessionId || !code) {
+      document.getElementById("status").innerText = "Invalid link!";
+    } else {
+      const dbRef = ref(db);
+      get(child(dbRef, `links/${sessionId}`)).then((snapshot) => {
+        if (snapshot.exists() && snapshot.val().code === code) {
+          document.getElementById("status").innerText = "Session valid! Code: " + code;
+        } else {
+          document.getElementById("status").innerText = "Invalid session or code!";
+        }
+      }).catch((error) => {
+        document.getElementById("status").innerText = "Error: " + error;
+      });
     }
-
-    loadData();
   </script>
 </body>
 </html>
