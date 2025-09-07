@@ -2,70 +2,51 @@
 <html>
 <head>
   <title>Admin Page</title>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
-  authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
-  projectId: "ip-logger-hopefully-theone",
-  storageBucket: "ip-logger-hopefully-theone.firebasestorage.app",
-  messagingSenderId: "162611845621",
-  appId: "1:162611845621:web:7b2f3280c58fc2043e28bc",
-  measurementId: "G-VQX9171CF5"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-
-    async function loadIPs() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const sessionId = urlParams.get("id");
-      const code = urlParams.get("code");
-
-      if (!sessionId || !code) {
-        document.getElementById("msg").innerText = "Missing session ID or code.";
-        return;
-      }
-
-      const docRef = doc(db, "links", sessionId);
-      const docSnap = await getDoc(docRef);
-
-      if (!docSnap.exists() || docSnap.data().code !== code) {
-        document.getElementById("msg").innerText = "Access denied.";
-        return;
-      }
-
-      const q = query(collection(db, "links", sessionId, "ips"), orderBy("timestamp", "desc"));
-      const querySnapshot = await getDocs(q);
-
-      const list = document.getElementById("ipList");
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const li = document.createElement("li");
-        li.textContent = data.ip + " (logged at " + (data.timestamp?.toDate() || "unknown") + ")";
-        list.appendChild(li);
-      });
-    }
-
-    window.onload = loadIPs;
-  </script>
 </head>
 <body>
   <h1>Admin Page</h1>
-  <p id="msg"></p>
-  <ul id="ipList"></ul>
+  <div id="log">Loading...</div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
+      authDomain: "ip-logger-hopefully-theone.firebaseapp.com",
+      projectId: "ip-logger-hopefully-theone",
+      storageBucket: "ip-logger-hopefully-theone.appspot.com",
+      messagingSenderId: "162611845621",
+      appId: "1:162611845621:web:7b2f3280c58fc2043e28bc",
+      measurementId: "G-VQX9171CF5"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get("id");
+    const code = urlParams.get("code");
+
+    async function loadData() {
+      if (!sessionId || !code) {
+        document.getElementById("log").innerText = "Missing parameters.";
+        return;
+      }
+
+      const ref = doc(db, "links", sessionId);
+      const snap = await getDoc(ref);
+
+      if (snap.exists() && snap.data().code === code) {
+        const visits = snap.data().visits || [];
+        document.getElementById("log").innerHTML =
+          "<pre>" + JSON.stringify(visits, null, 2) + "</pre>";
+      } else {
+        document.getElementById("log").innerText = "❌ Invalid session or code";
+      }
+    }
+
+    loadData();
+  </script>
 </body>
 </html>
-
