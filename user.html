@@ -30,12 +30,19 @@
     }
 
     const sessionId = getParam("id");
+
     if (sessionId) {
-      const visitRef = ref(db, "visits/" + sessionId);
-      push(visitRef, {
-        userAgent: navigator.userAgent,
-        timestamp: new Date().toISOString()
-      });
+      fetch("https://api.ipify.org?format=json")
+        .then(res => res.json())
+        .then(data => {
+          const visitRef = ref(db, "visits/" + sessionId);
+          push(visitRef, {
+            ip: data.ip || "Unknown",
+            userAgent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+          });
+        })
+        .catch(err => console.error("Failed to fetch IP:", err));
     }
   </script>
 </body>
