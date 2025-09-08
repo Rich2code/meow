@@ -4,12 +4,12 @@
   <title>User Page</title>
 </head>
 <body>
-  <h1>User Page</h1>
-  <p id="message">Loading session...</p>
+  <h1>Welcome</h1>
+  <p>This page logs visits.</p>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-app.js";
-    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/11.23.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+    import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
@@ -24,28 +24,19 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionId = urlParams.get("id");
-
-    async function logVisit() {
-      const snapshot = await get(ref(db, "links/" + sessionId));
-      const data = snapshot.val();
-
-      if (!data) {
-        document.getElementById("message").innerText = "Session not found!";
-        return;
-      }
-
-      // Log visit count
-      const visitRef = ref(db, "links/" + sessionId + "/visits");
-      const visitsSnapshot = await get(visitRef);
-      const visits = visitsSnapshot.val() || 0;
-      await set(visitRef, visits + 1);
-
-      document.getElementById("message").innerText = `Session loaded! Total visits: ${visits + 1}`;
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
     }
 
-    logVisit();
+    const sessionId = getParam("id");
+    if (sessionId) {
+      const visitRef = ref(db, "visits/" + sessionId);
+      push(visitRef, {
+        userAgent: navigator.userAgent,
+        timestamp: new Date().toISOString()
+      });
+    }
   </script>
 </body>
 </html>
