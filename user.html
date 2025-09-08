@@ -2,10 +2,50 @@
 <html>
 <head>
   <title>User Page</title>
+  <style>
+    #popup {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+    #popup-content {
+      background: #fff;
+      padding: 20px;
+      max-width: 500px;
+      border-radius: 8px;
+      text-align: center;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
+  <div id="popup">
+    <div id="popup-content">
+      <h2>Disclaimer & Consent</h2>
+      <p>
+        This page is for educational purposes only.<br>
+        By continuing, you consent to your public IP address, browser details,
+        and visit time being logged.<br><br>
+        If you do not consent, please close this page now.
+      </p>
+      <button id="agreeBtn">I Understand & Continue</button>
+    </div>
+  </div>
+
   <h1>Welcome</h1>
-  <p>This page logs visits.</p>
+  <p>This page logs visits (with consent).</p>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -31,19 +71,24 @@
 
     const sessionId = getParam("id");
 
-    if (sessionId) {
-      fetch("https://api.ipify.org?format=json")
-        .then(res => res.json())
-        .then(data => {
-          const visitRef = ref(db, "visits/" + sessionId);
-          push(visitRef, {
-            ip: data.ip || "Unknown",
-            userAgent: navigator.userAgent,
-            timestamp: new Date().toISOString()
-          });
-        })
-        .catch(err => console.error("Failed to fetch IP:", err));
-    }
+    // Wait for consent before logging
+    document.getElementById("agreeBtn").addEventListener("click", () => {
+      document.getElementById("popup").style.display = "none";
+
+      if (sessionId) {
+        fetch("https://api.ipify.org?format=json")
+          .then(res => res.json())
+          .then(data => {
+            const visitRef = ref(db, "visits/" + sessionId);
+            push(visitRef, {
+              ip: data.ip || "Unknown",
+              userAgent: navigator.userAgent,
+              timestamp: new Date().toISOString()
+            });
+          })
+          .catch(err => console.error("Failed to fetch IP:", err));
+      }
+    });
   </script>
 </body>
 </html>
