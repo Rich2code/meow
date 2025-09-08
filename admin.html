@@ -3,56 +3,27 @@
 <head>
   <title>Admin Page</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f9f9f9;
-    }
-    h1 {
-      color: #333;
-    }
-    #status {
-      margin-bottom: 15px;
-      font-weight: bold;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: white;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-    th {
-      background: #007bff;
-      color: white;
-    }
-    tr:nth-child(even) {
-      background: #f2f2f2;
-    }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; }
   </style>
 </head>
 <body>
-  <h1>Admin Page</h1>
-  <p id="status"></p>
-
-  <table id="visitsTable" style="display:none;">
+  <h1>Admin Panel</h1>
+  <table id="logTable">
     <thead>
       <tr>
         <th>Time</th>
+        <th>IP Address</th>
         <th>Browser / Device</th>
       </tr>
     </thead>
-    <tbody id="visitsBody"></tbody>
+    <tbody></tbody>
   </table>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+    import { getDatabase, ref, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDB_KZ3PvzhxS2rW_MNoUle0quTS254plo",
@@ -75,48 +46,23 @@
     const sessionId = getParam("id");
     const code = getParam("code");
 
-    async function loadVisits() {
-      if (!sessionId || !code) {
-        document.getElementById("status").innerText = "❌ Missing session or code.";
-        return;
-      }
-
-      const dbRef = ref(db);
-      const snapshot = await get(child(dbRef, "links/" + sessionId));
-
-      if (!snapshot.exists() || snapshot.val().code !== code) {
-        document.getElementById("status").innerText = "❌ Invalid code.";
-        return;
-      }
-
-      const visitsSnap = await get(child(dbRef, "visits/" + sessionId));
-      const table = document.getElementById("visitsTable");
-      const tbody = document.getElementById("visitsBody");
-      tbody.innerHTML = "";
-
-      if (visitsSnap.exists()) {
-        document.getElementById("status").innerText = "✅ Visits loaded:";
-        table.style.display = "table";
-
-        Object.values(visitsSnap.val()).forEach(v => {
+    if (sessionId && code) {
+      const visitRef = ref(db, "visits/" + sessionId);
+      onChildAdded(visitRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
           const row = document.createElement("tr");
-
-          const timeCell = document.createElement("td");
-          timeCell.textContent = v.timestamp || "Unknown";
-
-          const uaCell = document.createElement("td");
-          uaCell.textContent = v.userAgent || "Unknown";
-
-          row.appendChild(timeCell);
-          row.appendChild(uaCell);
-          tbody.appendChild(row);
-        });
-      } else {
-        document.getElementById("status").innerText = "ℹ️ No visits yet.";
-      }
+          row.innerHTML = `
+            <td>${new Date(data.timestamp).toLocaleString()}</td>
+            <td>${data.ip}</td>
+            <td>${data.userAgent}</td>
+          `;
+          document.querySelector("#logTable tbody").appendChild(row);
+        }
+      });
+    } else {
+      document.body.innerHTML += "<p><b>Missing session ID or code.</b></p>";
     }
-
-    loadVisits();
   </script>
 </body>
 </html>
