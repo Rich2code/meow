@@ -2,11 +2,53 @@
 <html>
 <head>
   <title>Admin Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    #status {
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background: #f2f2f2;
+    }
+  </style>
 </head>
 <body>
   <h1>Admin Page</h1>
   <p id="status"></p>
-  <ul id="visits"></ul>
+
+  <table id="visitsTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Browser / Device</th>
+      </tr>
+    </thead>
+    <tbody id="visitsBody"></tbody>
+  </table>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
@@ -35,7 +77,7 @@
 
     async function loadVisits() {
       if (!sessionId || !code) {
-        document.getElementById("status").innerText = "Missing session or code.";
+        document.getElementById("status").innerText = "❌ Missing session or code.";
         return;
       }
 
@@ -43,22 +85,34 @@
       const snapshot = await get(child(dbRef, "links/" + sessionId));
 
       if (!snapshot.exists() || snapshot.val().code !== code) {
-        document.getElementById("status").innerText = "Invalid code.";
+        document.getElementById("status").innerText = "❌ Invalid code.";
         return;
       }
 
       const visitsSnap = await get(child(dbRef, "visits/" + sessionId));
-      const visitsList = document.getElementById("visits");
-      visitsList.innerHTML = "";
+      const table = document.getElementById("visitsTable");
+      const tbody = document.getElementById("visitsBody");
+      tbody.innerHTML = "";
 
       if (visitsSnap.exists()) {
+        document.getElementById("status").innerText = "✅ Visits loaded:";
+        table.style.display = "table";
+
         Object.values(visitsSnap.val()).forEach(v => {
-          const li = document.createElement("li");
-          li.textContent = `${v.timestamp} - ${v.userAgent}`;
-          visitsList.appendChild(li);
+          const row = document.createElement("tr");
+
+          const timeCell = document.createElement("td");
+          timeCell.textContent = v.timestamp || "Unknown";
+
+          const uaCell = document.createElement("td");
+          uaCell.textContent = v.userAgent || "Unknown";
+
+          row.appendChild(timeCell);
+          row.appendChild(uaCell);
+          tbody.appendChild(row);
         });
       } else {
-        document.getElementById("status").innerText = "No visits yet.";
+        document.getElementById("status").innerText = "ℹ️ No visits yet.";
       }
     }
 
