@@ -20,6 +20,8 @@
       background-color: green;
       color: white;
       border: none;
+      padding: 10px 20px;
+      cursor: pointer;
     }
     .link-item { margin-bottom: 5px; }
   </style>
@@ -44,19 +46,34 @@
     <button id="acceptCookies">Continue</button>
   </div>
 
-  <script>
-    // ----- SHOW COOKIE POPUP -----
+  <script type="module">
+    // Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR-API-KEY",
+      authDomain: "YOUR-PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR-PROJECT.firebaseio.com",
+      projectId: "YOUR-PROJECT",
+      storageBucket: "YOUR-PROJECT.appspot.com",
+      messagingSenderId: "SENDER-ID",
+      appId: "APP-ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Cookie popup
     const cookiePopup = document.getElementById("cookiePopup");
     if (!localStorage.getItem("cookiesAccepted")) {
       cookiePopup.style.display = "block";
     }
-
     document.getElementById("acceptCookies").addEventListener("click", () => {
       localStorage.setItem("cookiesAccepted", "true");
       cookiePopup.style.display = "none";
     });
 
-    // ----- HELPER TO GENERATE RANDOM STRINGS -----
     function randomString(length) {
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
       return Array.from({length}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
@@ -75,30 +92,31 @@
         previousLinksDiv.appendChild(div);
       });
     }
-
     renderPreviousLinks();
 
-    // ----- FUNCTION TO MAKE NEW LINKS -----
-    function makeNew() {
+    async function makeNew() {
       const sessionId = randomString(8);
       const code = randomString(6);
 
-      // Generate the links with /meow/ path
       const basePath = window.location.origin + "/meow";
       const baitLink = basePath + "/user.html?id=" + sessionId;
       const adminLink = basePath + "/admin.html?id=" + sessionId + "&code=" + code;
 
-      // Display the links
       document.getElementById("bait").innerHTML = `<a href="${baitLink}" target="_blank">${baitLink}</a>`;
       document.getElementById("admin").innerHTML = `<a href="${adminLink}" target="_blank">${adminLink}</a>`;
 
-      // Save to previous links
+      // Save session to Firebase
+      await set(ref(db, "sessions/" + sessionId), {
+        code: code,
+        createdAt: Date.now()
+      });
+
+      // Save to localStorage
       previousLinks.push({ bait: baitLink, admin: adminLink });
       localStorage.setItem("previousLinks", JSON.stringify(previousLinks));
       renderPreviousLinks();
     }
 
-    // ----- CONNECT BUTTON -----
     document.getElementById("makeBtn").addEventListener("click", makeNew);
   </script>
 </body>
